@@ -13,7 +13,7 @@ public:
   static
   void noteOn(const AtomSerializer & dst, uint8_t channel, uint8_t key, uint8_t velocity, UriMap & map)
   {
-    dst.atom().type = map[LV2_MIDI__NoteOn];
+    dst.atom().type = map[LV2_MIDI__MidiEvent];
     dst.atom().size = 3;
 
     uint8_t status = 0;
@@ -34,7 +34,7 @@ public:
   static
   void noteOff(const AtomSerializer & dst, uint8_t channel, uint8_t key, uint8_t velocity, UriMap & map)
   {
-    dst.atom().type = map[LV2_MIDI__NoteOff];
+    dst.atom().type = map[LV2_MIDI__MidiEvent];
     dst.atom().size = 3;
 
     uint8_t status = 0;

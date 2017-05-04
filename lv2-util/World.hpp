@@ -47,7 +47,7 @@ public:
 
     lilv_node_free(lilv_uri);
 
-    return plugin;
+    return Plugin(plugin, w);
   }
 };
 

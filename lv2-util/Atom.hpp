@@ -14,6 +14,18 @@ using std::vector;
 class AtomBuffer
 {
 public:
+  struct OutOfMemory {};
+
+  AtomBuffer(size_t size):
+    m_data(new unsigned char [size]),
+    m_size(size)
+  {}
+
+  ~AtomBuffer()
+  {
+    delete[] m_data;
+  }
+
   template <typename T>
   size_t append(const T & value)
   {
@@ -30,24 +42,40 @@ public:
 
   size_t allocate(size_t count)
   {
-    data.resize(data.size() + count);
-    return data.size() - count;
+    if (m_pos + count > m_size)
+      throw OutOfMemory();
+
+    auto pos = m_pos;
+    m_pos += count;
+
+    return pos;
   }
 
-  void * operator[](size_t pos) { return data.data() + pos; }
+  void reset()
+  {
+    m_pos = 0;
+  }
+
+  void * operator[](size_t pos) { return m_data + pos; }
 
   template <typename T>
   T & get(size_t pos)
   {
-    return *reinterpret_cast<T*>(data.data() + pos);
+    return *reinterpret_cast<T*>(m_data + pos);
   }
 
-  size_t position(void * ptr) { return reinterpret_cast<unsigned char*>(ptr) - data.data(); }
+  size_t position(void * ptr) { return reinterpret_cast<unsigned char*>(ptr) - m_data; }
 
-  size_t size() const { return data.size(); }
+  size_t capacity() const { return m_size; }
+
+  size_t size() const { return m_pos; }
+
+  void * data() const { return m_data; }
 
 private:
-  vector<unsigned char> data;
+  unsigned char * m_data = nullptr;
+  size_t m_size = 0;
+  size_t m_pos = 0;
 };
 
 class AtomSerializer
@@ -75,9 +103,9 @@ class AtomEventSerializer
   AtomBuffer & m_buffer;
   size_t m_pos;
 
-public:
-
   LV2_Atom_Event & event() { return m_buffer.get<LV2_Atom_Event>(m_pos); }
+
+public:
 
   uint32_t size()
   {
@@ -87,6 +115,16 @@ public:
   AtomEventSerializer(AtomBuffer & buf): m_buffer(buf)
   {
     m_pos = m_buffer.allocate<LV2_Atom_Event>();
+  }
+
+  void setFrames(int64_t frames)
+  {
+    event().time.frames = frames;
+  }
+
+  void setBeats(double beats)
+  {
+    event().time.beats = beats;
   }
 
   AtomSerializer body()
@@ -100,9 +138,9 @@ class AtomSequenceSerializer
   AtomBuffer & m_buffer;
   size_t m_pos;
 
-public:
-
   LV2_Atom_Sequence & sequence() { return m_buffer.get<LV2_Atom_Sequence>(m_pos); }
+
+public:
 
   AtomSequenceSerializer(const AtomSerializer & atom, UriMap & map):
     m_buffer(atom.buffer()),
@@ -112,6 +150,13 @@ public:
 
     sequence().atom.size = sizeof(LV2_Atom_Sequence_Body);
     sequence().atom.type = map[LV2_ATOM__Sequence];
+    sequence().body.unit = 0;
+    sequence().body.pad = 0;
+  }
+
+  void setUnit(uint32_t unit)
+  {
+    sequence().body.unit = unit;
   }
 
   template <typename F>

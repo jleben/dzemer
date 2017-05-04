@@ -20,15 +20,15 @@ void sequence()
 
   dzemer::UriMapper uri_map;
 
-  AtomBuffer buffer;
+  AtomBuffer buffer(512);
   AtomSerializer atom(buffer);
   AtomSequenceSerializer sequence(atom, uri_map);
   sequence << [&](AtomEventSerializer & event){
-    event.event().time.frames = 111;
+    event.setFrames(111);
     AtomIntSerializer i(event.body(), 12345, uri_map);
   };
   sequence << [&](AtomEventSerializer & event){
-    event.event().time.frames = 555;
+    event.setFrames(555);
     AtomMidiSerializer::noteOn(event.body(), 5, 61, 78, uri_map);
   };
 
@@ -62,7 +62,7 @@ void sequence()
       LV2_Atom_Event * event = (LV2_Atom_Event*)(d + sizeof(LV2_Atom_Sequence) + pos);
 
       assert(event->time.frames == 555, "Event frames = 555");
-      assert(event->body.type == uri_map[LV2_MIDI__NoteOn], "Event data type is MIDI note-on message.");
+      assert(event->body.type == uri_map[LV2_MIDI__MidiEvent], "Event data type is MIDI.");
       assert(event->body.size == 3, "Event data size is 3.");
 
       uint8_t * msg = (uint8_t*) ((char*) event + sizeof(LV2_Atom_Event));

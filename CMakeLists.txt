@@ -12,6 +12,6 @@ add_executable(dzemer
     lv2-util/Plugin.cpp
 )
 
-target_link_libraries(dzemer lilv-0)
+target_link_libraries(dzemer lilv-0 jack)
 
 add_subdirectory(test)
