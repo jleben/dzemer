@@ -4,7 +4,11 @@
 
 #include <urid.lv2/urid.h>
 
+#include <string>
+
 namespace LV2 {
+
+using std::string;
 
 class UriMap
 {
@@ -19,6 +23,8 @@ public:
   }
 
   virtual id_t map(const string & uri) = 0;
+
+  id_t operator[](const string & uri) { return map(uri); }
 
   Feature feature()
   {

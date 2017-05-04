@@ -44,6 +44,9 @@ class PluginInstance
   LilvInstance * i;
 
 public:
+  using port_index_t = uint32_t;
+  using sample_count_t = uint32_t;
+
   PluginInstance(LilvInstance * i): i(i) {}
 
   ~PluginInstance()
@@ -52,6 +55,26 @@ public:
   }
 
   PluginInstance(const PluginInstance &) = delete;
+
+  void connect_port(port_index_t index, void * data)
+  {
+    lilv_instance_connect_port(i, index, data);
+  }
+
+  void activate()
+  {
+    lilv_instance_activate(i);
+  }
+
+  void deactivate()
+  {
+    lilv_instance_deactivate(i);
+  }
+
+  void run(sample_count_t sample_count)
+  {
+    lilv_instance_run(i, sample_count);
+  }
 
   string uri()
   {

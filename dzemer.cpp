@@ -1,8 +1,11 @@
 #include "arguments.hpp"
+#include "util.hpp"
 
 #include "lv2-util/World.hpp"
 #include "lv2-util/Plugin.hpp"
 #include "lv2-util/UriMap.hpp"
+#include "lv2-util/Atom.hpp"
+#include "lv2-util/Midi.hpp"
 
 #include <lilv/lilv.h>
 
@@ -11,34 +14,6 @@
 
 using namespace std;
 using namespace dzemer;
-
-namespace dzemer {
-
-using std::unordered_map;
-
-class UriMapper : public LV2::UriMap
-{
-  unordered_map<string, id_t> m_map;
-
-  id_t map(const string & uri) override
-  {
-    static id_t next_id = 1;
-
-    auto & id = m_map[uri];
-
-    if (id == 0)
-    {
-      id = next_id;
-      ++next_id;
-    }
-
-    cout << "Mapped " << uri << " to " << id << endl;
-
-    return id;
-  }
-};
-
-}
 
 int main(int argc, char * argv[])
 {

@@ -13,3 +13,5 @@ add_executable(dzemer
 )
 
 target_link_libraries(dzemer lilv-0)
+
+add_subdirectory(test)
