@@ -9,6 +9,7 @@ include_directories(
 
 add_executable(dzemer
     dzemer.cpp
+    engine/engine.cpp
     lv2-util/Plugin.cpp
 )
 

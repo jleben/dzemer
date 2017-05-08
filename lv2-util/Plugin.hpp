@@ -112,7 +112,7 @@ public:
 
   Plugin(const LilvPlugin * p, LilvWorld * w): w(w), p(p) {}
 
-  operator bool()
+  operator bool() const
   {
     return p != nullptr;
   }
