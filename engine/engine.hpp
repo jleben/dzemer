@@ -1,3 +1,5 @@
+#pragma once
+
 #include "midi_stream.hpp"
 #include "../lv2-util/Plugin.hpp"
 #include "../lv2-util/Atom.hpp"

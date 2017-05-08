@@ -49,6 +49,22 @@ public:
 
     return Plugin(plugin, w);
   }
+
+  vector<Plugin> allPlugins()
+  {
+      vector<Plugin> result;
+
+      auto plugins = lilv_world_get_all_plugins(w);
+
+      for(auto i = lilv_plugins_begin(plugins);
+          !lilv_plugins_is_end(plugins, i);
+          i = lilv_plugins_next(plugins, i))
+      {
+          result.emplace_back(lilv_plugins_get(plugins, i), w);
+      }
+
+      return std::move(result);
+  }
 };
 
 }

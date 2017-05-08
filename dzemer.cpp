@@ -1,5 +1,6 @@
 #include "arguments.hpp"
 #include "engine/engine.hpp"
+#include "gui/main_window.hpp"
 
 #include "lv2-util/World.hpp"
 #include "lv2-util/Plugin.hpp"
@@ -7,6 +8,8 @@
 #include <lilv/lilv.h>
 
 #include <jack/jack.h>
+
+#include <QApplication>
 
 #include <iostream>
 #include <thread>
@@ -55,10 +58,16 @@ int main(int argc, char * argv[])
 
   engine->addSynth(plugin);
 
-  while(1)
-  {
-    this_thread::sleep_for(chrono::seconds(1));
-  }
+  QApplication app(argc, argv);
+
+  auto main_win = new MainWindow(engine, world);
+  main_win->show();
+
+  auto status = app.exec();
+
+  delete main_win;
 
   delete engine;
+
+  return status;
 }
