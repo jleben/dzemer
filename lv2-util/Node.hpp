@@ -10,19 +10,21 @@ using std::string;
 
 class Node
 {
-  LilvNode * node = nullptr;
+  LilvNode * own_node = nullptr;
+  const LilvNode * node = nullptr;
 
 public:
   struct InvalidConversion {};
 
-  Node(LilvNode * node): node(node) {}
+  Node(LilvNode * node): own_node(node), node(node) {}
 
-  ~Node() { lilv_node_free(node); }
+  Node(const LilvNode * node): node(node) {}
+
+  ~Node() { lilv_node_free(own_node); }
 
   Node(const Node & other):
-    node(lilv_node_duplicate(other.node))
-  {
-  }
+    Node(lilv_node_duplicate(other.node))
+  {}
 
   string to_uri()
   {
@@ -59,7 +61,7 @@ public:
     return lilv_node_as_bool(node);
   }
 
-  LilvNode * get() const { return node; }
+  const LilvNode * get() const { return node; }
 };
 
 }
