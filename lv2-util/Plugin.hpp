@@ -101,6 +101,28 @@ public:
   }
 };
 
+class PluginClass
+{
+    const LilvPluginClass * c = nullptr;
+
+public:
+
+    PluginClass() {}
+
+    PluginClass(const LilvPluginClass * c): c(c) {}
+
+    operator bool() const
+    {
+      return c != nullptr;
+    }
+
+    string uri() const
+    {
+        Node node = lilv_plugin_class_get_uri(c);
+        return node.to_uri();
+    }
+};
+
 class Plugin
 {
   LilvWorld * w = nullptr;
@@ -120,6 +142,17 @@ public:
   string name() const
   {
     return lilv_node_as_string(lilv_plugin_get_name(p));
+  }
+
+  string uri() const
+  {
+      Node node = lilv_plugin_get_uri(p);
+      return node.to_uri();
+  }
+
+  PluginClass klass() const
+  {
+      return lilv_plugin_get_class(p);
   }
 
   PluginInstance * instantiate(double sampleRate, const vector<Feature> & features = vector<Feature>());
