@@ -27,27 +27,8 @@ int main(int argc, char * argv[])
 
   args.parse(argc-1, argv+1);
 
-  if (plugin_uri.empty())
-  {
-    cerr << "Missing argument: Plugin URI (-plugin)" << endl;
-    return 1;
-  }
-
-  cout << "Plugin URI: " << plugin_uri << endl;
-
   LV2::World world;
-
   world.loadAll();
-
-  LV2::Plugin plugin = world.pluginForUri(plugin_uri);
-
-  if (!plugin)
-  {
-    cerr << "Plugin not found." << endl;
-    return 1;
-  }
-
-  cout << "Plugin name: " << plugin.name() << endl;
 
   auto engine = new Engine();
 
@@ -56,7 +37,25 @@ int main(int argc, char * argv[])
 
   engine->start(options);
 
-  engine->addSynth(plugin);
+  if (!plugin_uri.empty())
+  {
+
+      cout << "Plugin URI: " << plugin_uri << endl;
+
+      LV2::Plugin plugin = world.pluginForUri(plugin_uri);
+
+      if (plugin)
+      {
+          cout << "Plugin name: " << plugin.name() << endl;
+
+          engine->addSynth(plugin);
+      }
+      else
+      {
+        cerr << "Plugin not found." << endl;
+        return 1;
+      }
+  }
 
   QApplication app(argc, argv);
 
