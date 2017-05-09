@@ -158,7 +158,7 @@ Engine::Runtime::~Runtime()
 void
 Engine::Runtime::addSynth(LV2::Plugin & plugin)
 {
-    auto synth = new Synth;
+    auto synth = new Synth(uri_mapper);
 
     synth->plugin_instance = plugin.instantiate(jack.sample_rate, {uri_mapper.feature()} );
 
@@ -261,17 +261,24 @@ int Engine::Runtime::process(jack_nframes_t nframes)
 {
     std::lock_guard<mutex> lock(m_mutex);
 
-    m_bleeper.run(nframes);
+    //m_bleeper.run(nframes);
+
+    auto time = jack_last_frame_time(jack.client);
 
     for (auto synth : m_synths)
     {
         if (synth->midi_in_port_index >= 0)
-            synth->plugin_instance->connect_port(synth->midi_in_port_index, midi_buffer.data());
+        {
+            synth->score_recorder.start(&synth->score, jack.midi_in_port, time);
+            synth->score_player.start(&synth->score, &synth->midi_in_buffer, time);
+
+            synth->score_recorder.record(time, nframes);
+            synth->score_player.play(time, nframes);
+
+            synth->plugin_instance->connect_port(synth->midi_in_port_index, synth->midi_in_buffer.data());
+        }
 
         synth->plugin_instance->run(nframes);
-
-        if (synth->midi_in_port_index >= 0)
-            synth->plugin_instance->connect_port(synth->midi_in_port_index, nullptr);
     }
 
     for (int port_idx = 0; port_idx < jack.audio_out_ports.size(); ++port_idx)

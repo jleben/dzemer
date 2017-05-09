@@ -10,6 +10,16 @@ namespace LV2 {
 class AtomMidiSerializer
 {
 public:
+    static
+    void message(const AtomSerializer & dst, void * data, int size, UriMap & map)
+    {
+        dst.atom().type = map[LV2_MIDI__MidiEvent];
+        dst.atom().size = size;
+
+        auto pos = dst.buffer().allocate(size);
+        memcpy(dst.buffer()[pos], data, size);
+    }
+
   static
   void noteOn(const AtomSerializer & dst, uint8_t channel, uint8_t key, uint8_t velocity, UriMap & map)
   {

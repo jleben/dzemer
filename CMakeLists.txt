@@ -17,6 +17,8 @@ include_directories(
 add_executable(dzemer
     dzemer.cpp
     engine/engine.cpp
+    engine/score_recorder.cpp
+    engine/score_player.cpp
     gui/main_window.cpp
     gui/lv2_plugin_browser.cpp
     lv2-util/Plugin.cpp

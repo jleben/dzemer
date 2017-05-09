@@ -1,6 +1,8 @@
 #pragma once
 
-#include "midi_stream.hpp"
+#include "score.hpp"
+#include "score_recorder.hpp"
+#include "score_player.hpp"
 #include "../lv2-util/Plugin.hpp"
 #include "../lv2-util/Atom.hpp"
 #include "../lv2-util/Midi.hpp"
@@ -54,6 +56,9 @@ public:
     void stop();
     bool isActive() const { return m_runtime != nullptr; }
 
+    //void startRecording();
+    //void stopRecording();
+
 private:
 
     vector<LV2::Plugin> m_synths;
@@ -70,12 +75,24 @@ private:
 
         struct Synth
         {
+            Synth(LV2::UriMap & uri_map):
+                // FIXME: Adjust buffer capacities
+                midi_in_buffer(1024),
+                score(100),
+                score_player(uri_map)
+            {}
+
             ~Synth();
 
             LV2::PluginInstance * plugin_instance;
             vector<float> control_buffers;
             vector<vector<float>> audio_out_buffers;
             int midi_in_port_index = -1;
+            LV2::AtomBuffer midi_in_buffer;
+
+            Score score;
+            Score_Player score_player;
+            Score_Recorder score_recorder;
         };
 
         // Thread-safe
