@@ -11,7 +11,7 @@ class AtomMidiSerializer
 {
 public:
     static
-    void message(const AtomSerializer & dst, void * data, int size, UriMap & map)
+    void message(const AtomSerializer & dst, const void * data, int size, UriMap & map)
     {
         dst.atom().type = map[LV2_MIDI__MidiEvent];
         dst.atom().size = size;

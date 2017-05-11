@@ -65,7 +65,21 @@ void Engine::selectActiveSynth(int index)
     }
 }
 
+void Engine::startRecording(int index)
+{
+    if (!m_runtime)
+        return;
 
+    m_runtime->startRecording(index);
+}
+
+void Engine::stopRecording()
+{
+    if (!m_runtime)
+        return;
+
+    m_runtime->stopRecording();
+}
 
 Engine::Runtime::Runtime(const Engine::Options & options)
 {
@@ -257,6 +271,57 @@ void Engine::Runtime::setActiveSynth(int index)
     activeSynth = index;
 }
 
+void Engine::Runtime::startRecording(int index)
+{
+    std::lock_guard<mutex> lock(m_mutex);
+
+    if (m_recording_synth >= 0)
+        return;
+
+    if (index < 0 || index >= m_synths.size())
+        return;
+
+    auto synth = m_synths[index];
+
+    if (synth->midi_in_port_index < 0)
+        return;
+
+    auto time = jack_frame_time(jack.client);
+
+    synth->start_recording(jack.midi_in_port, time);
+    synth->start_playing(time);
+    synth->state = Synth::Recording;
+
+    m_recording_synth = index;
+
+    cout << "Recording..." << endl;
+}
+
+void Engine::Runtime::stopRecording()
+{
+    std::lock_guard<mutex> lock(m_mutex);
+
+    if (m_recording_synth < 0)
+        return;
+
+    auto synth = m_synths[m_recording_synth];
+
+    auto start_time = synth->score_recorder.start_time();
+
+    synth->stop_recording();
+
+    auto now = jack_frame_time(jack.client);
+    auto loop_duration = now - start_time;
+
+    synth->start_playing(now, loop_duration);
+
+    synth->state = Synth::Playing;
+
+    m_recording_synth = -1;
+
+    cout << "Playing: loop = " << loop_duration << endl;
+}
+
 int Engine::Runtime::process(jack_nframes_t nframes)
 {
     std::lock_guard<mutex> lock(m_mutex);
@@ -267,15 +332,17 @@ int Engine::Runtime::process(jack_nframes_t nframes)
 
     for (auto synth : m_synths)
     {
-        if (synth->midi_in_port_index >= 0)
+        switch(synth->state)
         {
-            synth->score_recorder.start(&synth->score, jack.midi_in_port, time);
-            synth->score_player.start(&synth->score, &synth->midi_in_buffer, time);
-
+        case Synth::Recording:
             synth->score_recorder.record(time, nframes);
             synth->score_player.play(time, nframes);
-
-            synth->plugin_instance->connect_port(synth->midi_in_port_index, synth->midi_in_buffer.data());
+            break;
+        case Synth::Playing:
+            synth->score_player.play(time, nframes);
+            break;
+        default:
+            ;
         }
 
         synth->plugin_instance->run(nframes);

@@ -17,6 +17,18 @@ MainWindow::MainWindow(Engine * engine, LV2::World & lv2_world):
         connect(action, &QAction::triggered,
                 this, &MainWindow::addSelectedInstrument);
     }
+    {
+        auto action = m_toolbar->addAction("Start Recording");
+        connect(action, &QAction::triggered,
+                this, &MainWindow::startRecording);
+    }
+    {
+        auto action = m_toolbar->addAction("Stop Recording");
+        connect(action, &QAction::triggered,
+                this, &MainWindow::stopRecording);
+    }
+
+
 
     setCentralWidget(m_lv2_plugin_browser);
 
@@ -32,6 +44,16 @@ void MainWindow::addSelectedInstrument()
     qDebug() << "Adding instrument: " << QString::fromStdString(plugin.name());
 
     m_engine->addSynth(plugin);
+}
+
+void MainWindow::startRecording()
+{
+    m_engine->startRecording(0);
+}
+
+void MainWindow::stopRecording()
+{
+    m_engine->stopRecording();
 }
 
 }

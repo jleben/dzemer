@@ -33,14 +33,14 @@ void Score_Recorder::record(jack_nframes_t time, jack_nframes_t duration)
          i < (int) num_events && m_write_pos < m_score->buffer.size();
          ++i)
     {
-        printf("Rec: Event\n");
-
         auto & event = m_score->buffer[m_write_pos];
 
         jack_midi_event_t jack_event;
         int error = jack_midi_event_get(&jack_event, source, i);
         if (error)
             break;
+
+        printf("Rec: Event, time = %u\n", recording_time + jack_event.time);
 
         auto midi_data = jack_event.buffer;
         auto midi_type = lv2_midi_message_type(midi_data);
@@ -72,7 +72,7 @@ void Score_Recorder::record(jack_nframes_t time, jack_nframes_t duration)
         }
     }
 
-    m_score->size += m_write_pos;
+    m_score->size = m_write_pos;
 }
 
 }

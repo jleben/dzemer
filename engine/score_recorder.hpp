@@ -12,6 +12,7 @@ public:
     void start(Score * score, jack_port_t *, jack_nframes_t time);
     void stop() { m_score = nullptr; }
     void record(jack_nframes_t time, jack_nframes_t duration);
+    jack_nframes_t start_time() const { return m_start_time; }
 
 private:
     Score * m_score = nullptr;

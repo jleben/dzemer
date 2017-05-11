@@ -56,8 +56,8 @@ public:
     void stop();
     bool isActive() const { return m_runtime != nullptr; }
 
-    //void startRecording();
-    //void stopRecording();
+    void startRecording(int index);
+    void stopRecording();
 
 private:
 
@@ -75,6 +75,13 @@ private:
 
         struct Synth
         {
+            enum State
+            {
+                Idle,
+                Recording,
+                Playing
+            };
+
             Synth(LV2::UriMap & uri_map):
                 // FIXME: Adjust buffer capacities
                 midi_in_buffer(1024),
@@ -83,6 +90,28 @@ private:
             {}
 
             ~Synth();
+
+            void start_recording(jack_port_t * in, jack_nframes_t time)
+            {
+                score_recorder.start(&score, in, time);
+            }
+
+            void stop_recording()
+            {
+                score_recorder.stop();
+            }
+
+            void start_playing(jack_nframes_t time, jack_nframes_t loop = 0)
+            {
+                score_player.start(&score, &midi_in_buffer, time, loop);
+                plugin_instance->connect_port(midi_in_port_index, midi_in_buffer.data());
+            }
+
+            void stop_playing()
+            {
+                score_player.stop();
+                plugin_instance->connect_port(midi_in_port_index, nullptr);
+            }
 
             LV2::PluginInstance * plugin_instance;
             vector<float> control_buffers;
@@ -93,6 +122,8 @@ private:
             Score score;
             Score_Player score_player;
             Score_Recorder score_recorder;
+
+            State state = Idle;
         };
 
         // Thread-safe
@@ -105,6 +136,9 @@ private:
         void removeSynth(int index);
 
         void setActiveSynth(int index);
+
+        void startRecording(int index);
+        void stopRecording();
 
     private:
 
@@ -121,6 +155,7 @@ private:
         } jack;
 
         vector<Synth*> m_synths;
+        int m_recording_synth = -1;
         int activeSynth = -1;
 
         LV2::AtomBuffer midi_buffer { 1024 };

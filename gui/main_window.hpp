@@ -18,6 +18,8 @@ public:
 
 private:
     void addSelectedInstrument();
+    void startRecording();
+    void stopRecording();
 
     Engine * m_engine;
     LV2_Plugin_Browser * m_lv2_plugin_browser;
